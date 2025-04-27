@@ -77,7 +77,7 @@ func loadKeyPair(certFile, keyFile string) (tls.Certificate, error) {
 		return tls.Certificate{}, fmt.Errorf("failed to decode PEM block containing private key")
 	}
 
-	key, err := x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
+	key, err := x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
 	if err != nil {
 		return tls.Certificate{}, fmt.Errorf("x509.ParsePKCS1PrivateKey: %v", err)
 	}
