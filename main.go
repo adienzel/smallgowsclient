@@ -93,7 +93,7 @@ func loadKeyPair(certFile, keyFile string) (tls.Certificate, error) {
 			return tls.Certificate{}, fmt.Errorf("x509.ParsePKCS8PrivateKey: %v", err)
 		}
 	default:
-		log.Println("default --key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes): %v", err)
+		log.Println("default --key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes): %s,  %v", keyBlock.Type, err)
 
 		return tls.Certificate{}, fmt.Errorf("unsupported private key type: %s", keyBlock.Type)
 	}
