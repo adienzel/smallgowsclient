@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -77,9 +78,24 @@ func loadKeyPair(certFile, keyFile string) (tls.Certificate, error) {
 		return tls.Certificate{}, fmt.Errorf("failed to decode PEM block containing private key")
 	}
 
-	key, err := x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
-	if err != nil {
-		return tls.Certificate{}, fmt.Errorf("x509.ParsePKCS1PrivateKey: %v", err)
+	var key interface{}
+	switch keyBlock.Type {
+	case "RSA PRIVATE KEY":
+		key, err = x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
+		if err != nil {
+			log.Println("RSA PRIVATE KEY --key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes): %v", err)
+			return tls.Certificate{}, fmt.Errorf("x509.ParsePKCS1PrivateKey: %v", err)
+		}
+	case "PRIVATE KEY":
+		key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
+		if err != nil {
+			log.Println("PRIVATE KEY --key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes): %v", err)
+			return tls.Certificate{}, fmt.Errorf("x509.ParsePKCS8PrivateKey: %v", err)
+		}
+	default:
+		log.Println("default --key, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes): %v", err)
+
+		return tls.Certificate{}, fmt.Errorf("unsupported private key type: %s", keyBlock.Type)
 	}
 
 	cert := tls.Certificate{
@@ -98,7 +114,7 @@ func main() {
 	}
 
 	// Load CA certificate
-	caCert, err := os.ReadFile("ca.crt")
+	caCert, err := ioutil.ReadFile("ca.crt")
 	if err != nil {
 		log.Fatalf("Failed to read CA certificate: %v", err)
 	}
